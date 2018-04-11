@@ -1,8 +1,24 @@
 import { resolve } from 'app-root-path';
 import { app, BrowserWindow } from 'electron';
+import installExtension, {
+  ExtensionReference,
+  REACT_DEVELOPER_TOOLS,
+  REDUX_DEVTOOLS
+} from 'electron-devtools-installer';
 import isDev from 'electron-is-dev';
 import path from 'path';
 import url from 'url';
+
+async function installDevExtension(extension: ExtensionReference) {
+  try {
+    let name = await installExtension(extension);
+    // tslint:disable-next-line:no-console
+    console.log(`Added Extension:  ${name}`);
+  } catch (error) {
+    // tslint:disable-next-line:no-console
+    console.log('An error occurred: ', error);
+  }
+}
 
 // 保持一个对于 window 对象的全局引用，如果你不这样做，
 // 当 JavaScript 对象被垃圾回收， window 会被自动地关闭
@@ -22,13 +38,20 @@ function createWindow() {
     protocol: 'file:',
     slashes: true
   });
-  const indexUrl = isDev ? devUrl : prodUrl;
+  let indexUrl: string;
+
+  if (isDev) {
+    indexUrl = devUrl;
+    installDevExtension(REACT_DEVELOPER_TOOLS);
+    installDevExtension(REDUX_DEVTOOLS);
+    // 打开开发者工具。
+    win.webContents.openDevTools();
+  } else {
+    indexUrl = prodUrl;
+  }
 
   // 然后加载应用的 index.html。
   win.loadURL(indexUrl);
-
-  // 打开开发者工具。
-  // win.webContents.openDevTools();
 
   // 当 window 被关闭，这个事件会被触发。
   win.on('closed', () => {
