@@ -11,7 +11,10 @@ interface IPosition {
   left: string;
 }
 
-interface IDesignPanelProps {}
+interface IDesignPanelProps {
+  panelWidth: number;
+  panelHeight: number;
+}
 
 interface IDesignPanelState {
   lastMousePoint: IPoint;
@@ -55,7 +58,13 @@ class DesignPanel extends React.Component<
   render() {
     return (
       <div>
-        <div className="design-panel">
+        <div
+          className="design-panel"
+          style={{
+            width: this.props.panelWidth + 'px',
+            height: this.props.panelHeight + 'px'
+          }}
+        >
           <div
             className="design-panel__block"
             onMouseDown={this.handleDraggableMouseDown}
@@ -82,7 +91,10 @@ class DesignPanel extends React.Component<
   }
 
   private handleDraggableMouseMove(e: MouseEvent) {
-    const visibleRect = document.documentElement.getBoundingClientRect();
+    const visibleRect = {
+      width: this.props.panelWidth,
+      height: this.props.panelHeight
+    };
     const newMousePoint = {
       X: e.clientX,
       Y: e.clientY
@@ -95,6 +107,9 @@ class DesignPanel extends React.Component<
       const draggableRect = this.state.draggingElement.getBoundingClientRect();
       const rightLimit = visibleRect.width - draggableRect.width;
       const bottomLimit = visibleRect.height - draggableRect.height;
+
+      // tslint:disable-next-line:no-console
+      console.log(rightLimit, visibleRect.width, draggableRect.width);
 
       const lastMousePoint = this.state.lastMousePoint;
       const lastPosition = this.state.currentDraggablePosition;
