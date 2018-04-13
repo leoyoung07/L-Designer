@@ -20,7 +20,16 @@ interface IDesignPanelState {
   lastMousePoint: IPoint;
   currentDraggablePosition: IPosition;
   draggingElement: HTMLElement | null;
+  currentEditingElement: HTMLElement | null;
 }
+
+enum ArrowKeys {
+  ArrowLeft = 'ArrowLeft',
+  ArrowRight = 'ArrowRight',
+  ArrowUp = 'ArrowUp',
+  ArrowDown = 'ArrowDown',
+}
+
 class DesignPanel extends React.Component<
   IDesignPanelProps,
   IDesignPanelState
@@ -36,45 +45,60 @@ class DesignPanel extends React.Component<
         top: '0',
         left: '0'
       },
-      draggingElement: null
+      draggingElement: null,
+      currentEditingElement: null
     };
 
     this.handleDraggableMouseDown = this.handleDraggableMouseDown.bind(this);
-    this.handleDraggableMouseMove = this.handleDraggableMouseMove.bind(this);
-    this.handleDraggableMouseUp = this.handleDraggableMouseUp.bind(this);
+    this.handleDocumentMouseMove = this.handleDocumentMouseMove.bind(this);
+    this.handleDocumentMouseUp = this.handleDocumentMouseUp.bind(this);
+    this.handleDocumentClickCapturing = this.handleDocumentClickCapturing.bind(this);
+    this.handleDraggableElementClick = this.handleDraggableElementClick.bind(
+      this
+    );
+    this.handleDocumentKeyDown = this.handleDocumentKeyDown.bind(this);
 
     document.documentElement.addEventListener(
       'mouseup',
-      this.handleDraggableMouseUp,
+      this.handleDocumentMouseUp,
       false
     );
     document.documentElement.addEventListener(
       'mousemove',
-      this.handleDraggableMouseMove,
+      this.handleDocumentMouseMove,
+      false
+    );
+    document.documentElement.addEventListener(
+      'click',
+      this.handleDocumentClickCapturing,
+      true
+    );
+    document.documentElement.addEventListener(
+      'keydown',
+      this.handleDocumentKeyDown,
       false
     );
   }
 
   render() {
     return (
-      <div>
+      <div
+        className="design-panel"
+        style={{
+          width: this.props.panelWidth + 'px',
+          height: this.props.panelHeight + 'px'
+        }}
+      >
         <div
-          className="design-panel"
+          className="design-panel__block"
+          onMouseDown={this.handleDraggableMouseDown}
+          onClick={this.handleDraggableElementClick}
           style={{
-            width: this.props.panelWidth + 'px',
-            height: this.props.panelHeight + 'px'
+            left: this.state.currentDraggablePosition.left,
+            top: this.state.currentDraggablePosition.top
           }}
         >
-          <div
-            className="design-panel__block"
-            onMouseDown={this.handleDraggableMouseDown}
-            style={{
-              left: this.state.currentDraggablePosition.left,
-              top: this.state.currentDraggablePosition.top
-            }}
-          >
-            drag me!
-          </div>
+          drag me!
         </div>
       </div>
     );
@@ -90,7 +114,7 @@ class DesignPanel extends React.Component<
     });
   }
 
-  private handleDraggableMouseMove(e: MouseEvent) {
+  private handleDocumentMouseMove(e: MouseEvent) {
     const visibleRect = {
       width: this.props.panelWidth,
       height: this.props.panelHeight
@@ -107,9 +131,6 @@ class DesignPanel extends React.Component<
       const draggableRect = this.state.draggingElement.getBoundingClientRect();
       const rightLimit = visibleRect.width - draggableRect.width;
       const bottomLimit = visibleRect.height - draggableRect.height;
-
-      // tslint:disable-next-line:no-console
-      console.log(rightLimit, visibleRect.width, draggableRect.width);
 
       const lastMousePoint = this.state.lastMousePoint;
       const lastPosition = this.state.currentDraggablePosition;
@@ -132,7 +153,7 @@ class DesignPanel extends React.Component<
     }
   }
 
-  private handleDraggableMouseUp(e: MouseEvent) {
+  private handleDocumentMouseUp(e: MouseEvent) {
     this.setState({
       lastMousePoint: {
         X: 0,
@@ -140,6 +161,53 @@ class DesignPanel extends React.Component<
       },
       draggingElement: null
     });
+  }
+
+  private handleDocumentClickCapturing(e: MouseEvent) {
+    this.setState({
+      currentEditingElement: null
+    });
+  }
+
+  private handleDraggableElementClick(e: React.MouseEvent<HTMLElement>) {
+    this.setState({
+      currentEditingElement: e.currentTarget
+    });
+  }
+
+  private handleDocumentKeyDown(e: KeyboardEvent) {
+    if (this.state.currentEditingElement) {
+      let newTop = parseInt(this.state.currentDraggablePosition.top, 10);
+      let newLeft = parseInt(this.state.currentDraggablePosition.left, 10);
+      if (e.key === ArrowKeys.ArrowLeft) {
+        newLeft--;
+      }
+      if (e.key === ArrowKeys.ArrowRight) {
+        newLeft++;
+      }
+      if (e.key === ArrowKeys.ArrowUp) {
+        newTop--;
+      }
+      if (e.key === ArrowKeys.ArrowDown) {
+        newTop++;
+      }
+      const visibleRect = {
+        width: this.props.panelWidth,
+        height: this.props.panelHeight
+      };
+      const draggableRect = this.state.currentEditingElement.getBoundingClientRect();
+      const rightLimit = visibleRect.width - draggableRect.width;
+      const bottomLimit = visibleRect.height - draggableRect.height;
+      newLeft = this.clamp(newLeft, 0, rightLimit);
+      newTop = this.clamp(newTop, 0, bottomLimit);
+
+      this.setState({
+        currentDraggablePosition: {
+          top: newTop + 'px',
+          left: newLeft + 'px'
+        }
+      });
+    }
   }
 
   private clamp(num: number, leftLimit: number, rightLimit: number) {
