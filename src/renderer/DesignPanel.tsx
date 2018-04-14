@@ -52,10 +52,7 @@ class DesignPanel extends React.Component<
     this.handleDraggableMouseDown = this.handleDraggableMouseDown.bind(this);
     this.handleDocumentMouseMove = this.handleDocumentMouseMove.bind(this);
     this.handleDocumentMouseUp = this.handleDocumentMouseUp.bind(this);
-    this.handleDocumentClickCapturing = this.handleDocumentClickCapturing.bind(this);
-    this.handleDraggableElementClick = this.handleDraggableElementClick.bind(
-      this
-    );
+    this.handleDocumentMouseDownCapturing = this.handleDocumentMouseDownCapturing.bind(this);
     this.handleDocumentKeyDown = this.handleDocumentKeyDown.bind(this);
 
     document.documentElement.addEventListener(
@@ -69,8 +66,8 @@ class DesignPanel extends React.Component<
       false
     );
     document.documentElement.addEventListener(
-      'click',
-      this.handleDocumentClickCapturing,
+      'mousedown',
+      this.handleDocumentMouseDownCapturing,
       true
     );
     document.documentElement.addEventListener(
@@ -92,10 +89,10 @@ class DesignPanel extends React.Component<
         <div
           className="design-panel__block"
           onMouseDown={this.handleDraggableMouseDown}
-          onClick={this.handleDraggableElementClick}
           style={{
             left: this.state.currentDraggablePosition.left,
-            top: this.state.currentDraggablePosition.top
+            top: this.state.currentDraggablePosition.top,
+            borderColor: this.state.currentEditingElement ? 'cyan' : 'grey'
           }}
         >
           drag me!
@@ -110,7 +107,8 @@ class DesignPanel extends React.Component<
         X: e.clientX,
         Y: e.clientY
       },
-      draggingElement: e.target as HTMLElement
+      draggingElement: e.currentTarget,
+      currentEditingElement: e.currentTarget
     });
   }
 
@@ -163,15 +161,9 @@ class DesignPanel extends React.Component<
     });
   }
 
-  private handleDocumentClickCapturing(e: MouseEvent) {
+  private handleDocumentMouseDownCapturing(e: MouseEvent) {
     this.setState({
       currentEditingElement: null
-    });
-  }
-
-  private handleDraggableElementClick(e: React.MouseEvent<HTMLElement>) {
-    this.setState({
-      currentEditingElement: e.currentTarget
     });
   }
 
