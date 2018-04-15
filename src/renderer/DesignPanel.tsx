@@ -21,13 +21,19 @@ interface IDesignPanelState {
   currentDraggablePosition: IPosition;
   draggingElement: HTMLElement | null;
   currentEditingElement: HTMLElement | null;
+  elementsInPanel: Array<{
+    id: string;
+    type: string;
+    style: {};
+    text: string;
+  }>;
 }
 
 enum ArrowKeys {
   ArrowLeft = 'ArrowLeft',
   ArrowRight = 'ArrowRight',
   ArrowUp = 'ArrowUp',
-  ArrowDown = 'ArrowDown',
+  ArrowDown = 'ArrowDown'
 }
 
 class DesignPanel extends React.Component<
@@ -46,13 +52,27 @@ class DesignPanel extends React.Component<
         left: '0'
       },
       draggingElement: null,
-      currentEditingElement: null
+      currentEditingElement: null,
+      elementsInPanel: [
+        {
+          id: 'element_0',
+          type: 'div',
+          style: {
+            position: 'absolute',
+            border: '10px solid grey',
+            display: 'inline-block'
+          },
+          text: 'drag me!'
+        }
+      ]
     };
 
     this.handleDraggableMouseDown = this.handleDraggableMouseDown.bind(this);
     this.handleDocumentMouseMove = this.handleDocumentMouseMove.bind(this);
     this.handleDocumentMouseUp = this.handleDocumentMouseUp.bind(this);
-    this.handleDocumentMouseDownCapturing = this.handleDocumentMouseDownCapturing.bind(this);
+    this.handleDocumentMouseDownCapturing = this.handleDocumentMouseDownCapturing.bind(
+      this
+    );
     this.handleDocumentKeyDown = this.handleDocumentKeyDown.bind(this);
 
     document.documentElement.addEventListener(
@@ -86,17 +106,21 @@ class DesignPanel extends React.Component<
           height: this.props.panelHeight + 'px'
         }}
       >
-        <div
-          className="design-panel__block"
-          onMouseDown={this.handleDraggableMouseDown}
-          style={{
-            left: this.state.currentDraggablePosition.left,
-            top: this.state.currentDraggablePosition.top,
-            borderColor: this.state.currentEditingElement ? 'cyan' : 'grey'
-          }}
-        >
-          drag me!
-        </div>
+        {this.state.elementsInPanel.map(element => (
+          <div
+            className="design-panel__element"
+            onMouseDown={this.handleDraggableMouseDown}
+            style={{
+              ...element.style,
+              left: this.state.currentDraggablePosition.left,
+              top: this.state.currentDraggablePosition.top,
+              borderColor: this.state.currentEditingElement ? 'cyan' : 'grey'
+            }}
+            key={element.id}
+          >
+            {element.text}
+          </div>
+        ))}
       </div>
     );
   }

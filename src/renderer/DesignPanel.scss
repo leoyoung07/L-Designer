@@ -13,10 +13,7 @@ html, body{
   position: relative;
   box-sizing: content-box;
   border: 10px solid blue;
-  .design-panel__block {
-    position: absolute;
-    border: 10px solid grey;
-    display: inline-block;
+  .design-panel__element {
     cursor: move;
     user-select: none;
   }
