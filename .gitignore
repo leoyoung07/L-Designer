@@ -1,11 +1,4 @@
-# output
-/dist
-/.cache
-/.coverage
-*.map
-
-# dependencies
-/node_modules
-
-# logs
-*.log
+.DS_Store
+dist/
+node_modules/
+thumbs.db
